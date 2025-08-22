@@ -1,0 +1,72 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* 初始主题 CSS 变量 */
+@theme {
+	--color-primary-50: oklch(0.987 0.008 225.079);
+	--color-primary-100: oklch(0.969 0.019 225.712);
+	--color-primary-200: oklch(0.863 0.05 229.685);
+	--color-primary-300: oklch(0.759 0.075 234.966);
+	--color-primary-400: oklch(0.66 0.098 240.067);
+	--color-primary-500: oklch(0.566 0.115 244.99);
+	--color-primary: oklch(0.479 0.13 251.007);
+	--color-primary-700: oklch(0.42 0.122 253.316);
+	--color-primary-800: oklch(0.359 0.116 256.313);
+	--color-primary-900: oklch(0.303 0.105 257.617);
+	--color-primary-950: oklch(0.251 0.093 258.021);
+
+	--color-dark-50: oklch(0.997 0.013 106.635);
+	--color-dark-100: oklch(0.994 0.03 106.933);
+	--color-dark-200: oklch(0.967 0.08 105.52);
+	--color-dark-300: oklch(0.937 0.122 105);
+	--color-dark-400: oklch(0.904 0.151 102.846);
+	--color-dark-500: oklch(0.867 0.167 100.2);
+	--color-dark: oklch(0.826 0.168 94.56);
+	--color-dark-700: oklch(0.709 0.144 91.659);
+	--color-dark-800: oklch(0.59 0.12 87.941);
+	--color-dark-900: oklch(0.47 0.096 83.886);
+	--color-dark-950: oklch(0.35 0.072 82.069);
+
+	--color-primaryBlack: oklch(0.156 0.033 240.386);
+	--color-primaryWhite: oklch(0.961 0.001 286.375);
+	--color-darkBlack: oklch(0.195 0.038 99.68);
+	--color-darkWhite: oklch(0.964 0.001 106.424);
+
+	--color-success: oklch(0.637 0.184 146.403);
+	--color-warning: oklch(0.495 0.128 47.783);
+	--color-error: oklch(0.504 0.203 28.76);
+	--color-info: oklch(0.466 0.24 284.096);
+	
+	--color-extend0: oklch(0.703 0.149 235.113);
+	--color-Twitter: oklch(0.703 0.149 235.113);
+	--color-extend1: oklch(0.702 0.194 38.137);
+	--color-Svelte: oklch(0.702 0.194 38.137);
+	--color-extend2: oklch(0.716 0.171 53.446);
+	--color-Cloudflare: oklch(0.716 0.171 53.446);
+
+	--color-black: oklch(0 0 0);
+	--color-white: oklch(1 0 0);
+	--color-gray-50: oklch(0.961 0 0);
+	--color-gray-100: oklch(0.925 0 0);
+	--color-gray-200: oklch(0.845 0 0);
+	--color-gray-300: oklch(0.767 0 0);
+	--color-gray-400: oklch(0.683 0 0);
+	--color-gray-500: oklch(0.6 0 0);
+	--color-gray-600: oklch(0.51 0 0);
+	--color-gray-700: oklch(0.42 0 0);
+	--color-gray-800: oklch(0.321 0 0);
+	--color-gray-900: oklch(0.218 0 0);
+	--color-gray-950: oklch(0.159 0 0);
+	--color-transparent: transparent;
+}
+
+@source "../node_modules/stdf/dist/**/*.svelte";
+
+@plugin "@iconify/tailwind4" {
+	prefixes: solar;
+}
+
+html {
+	-webkit-tap-highlight-color: transparent;
+}

@@ -1,0 +1,28 @@
+{
+    "name": "1pass",
+    "private": true,
+    "version": "0.0.1",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview"
+    },
+    "devDependencies": {
+        "@iconify-json/solar": "^1.2.2",
+        "@iconify/tailwind4": "^1.0.6",
+        "@sveltejs/vite-plugin-svelte": "^5.0.3",
+        "@tailwindcss/vite": "^4.1.8",
+        "rollup-plugin-stdf-icon": "^0.1.2",
+        "stdf": "^1.1.1",
+        "svelte": "^5.28.1",
+        "tailwindcss": "^4.1.8",
+        "vite": "^6.3.5"
+    },
+    "dependencies": {
+        "@dfinity/agent": "^3.0.0",
+        "aes-js": "^4.0.0-beta.5",
+        "sha256-uint8array": "^0.10.7",
+        "svelte-i18n": "^4.0.1"
+    }
+}
