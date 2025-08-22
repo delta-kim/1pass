@@ -3,7 +3,7 @@
 
 
 ## Logo
-![1pass logo](./archive/Blue_and_White_Security_Logo_20250717_072826_0000.png)
+<img src="./archive/Blue_and_White_Security_Logo_20250717_072826_0000.png" alt="1pass logo" width="300">
 
 
 
