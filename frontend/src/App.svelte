@@ -805,7 +805,7 @@
 						<button
 							onclick={() => {
 								window.delta.openUrl(
-									"https://github.com/delta-kim/1pass/whitepaper",
+									"https://github.com/delta-kim/1pass/blob/main/archive/1Pass%20White%20Paper%20en-US.pdf",
 								);
 							}}
 						>
