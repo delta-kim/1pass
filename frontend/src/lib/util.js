@@ -7,11 +7,11 @@ const util = {
     },
 
     async getAppIdentityToken() {
-        let appIdentityToken = localStorage.getItem("identToken");
+        let appIdentityToken = sessionStorage.getItem("identToken");
         if (appIdentityToken == null) {
             // @ts-ignore
             if (window.delta) {
-                return await authByIdentToken($t("notAuthorizedYet"));
+                return await authByIdentToken(""); // $t("notAuthorizedYet")
             } else {
                 window.alert($t("notAuthorizedYet"));
                 return null;
@@ -92,13 +92,16 @@ export default util;
 async function authByIdentToken(title) {
     // @ts-ignore
     if (window.delta) {
-        // @ts-ignore
-        let bool = await window.delta.showConfirm(await window.delta.langText("authorizeDappAppToLogin"), title);
+        let bool = true;
+        if (title != "") {
+            // @ts-ignore
+            bool = await window.delta.showConfirm(await window.delta.langText("authorizeDappAppToLogin"), title);
+        }
         if (bool) {
             // @ts-ignore
             let res = await window.delta.authByIdentToken();
             if (res == null) return null;
-            localStorage.setItem("identToken", JSON.stringify(res));
+            sessionStorage.setItem("identToken", JSON.stringify(res));
             return {
                 accCanisterId: res.accCanisterId,
                 dAppIdentToken: res.dAppIdentToken

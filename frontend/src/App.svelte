@@ -27,12 +27,35 @@
 	//import hash from "js-crypto-hash";
 	import { createHash } from "sha256-uint8array";
 
-	//解决 ios 不支持按钮:active 伪类
-	// Solve the problem that ios does not support the button: active pseudo class
-	document.body.addEventListener("touchstart", function () {
-		//...空函数即可
-		// ... Empty function is OK
-	});
+	(function () {
+		if (window.Initialized == undefined) {
+			// Solve the problem that ios does not support the button: active pseudo class
+			document.body.addEventListener("touchstart", function () {
+				// ... Empty function is OK
+			});
+			window.addEventListener("hashchange", () => {
+				const hash = window.location.hash;
+				console.log("hash1", hash);
+				if (hash == "#create") {
+					openCreate();
+				} else if (hash.startsWith("#openDetail")) {
+					let i = parseInt(hash.split(".")[1]);
+					if (i == -1) {
+						openDetail(-1, demoData);
+					} else {
+						let [index, item] = headList[i];
+						openDetail(index, item);
+					}
+				} else if (hash == "" || hash == "#") {
+					switchToList();
+				}
+			});
+			window.Initialized = true;
+		} else {
+			console.log("window.Initialized");
+		}
+	})();
+
 	let textDecoder = new TextDecoder();
 	let textEncoder = new TextEncoder();
 	let NumberFormat = Intl.NumberFormat("en-US", { maximumFractionDigits: 3 });
@@ -273,15 +296,11 @@
 		thisOriginalTitle = "";
 		ciphertextSize = 0;
 		compressedSize = 0;
+		//location.hash = "#";
+		document.title = "1 Pass";
 	}
 
 	async function openDetail(index, item) {
-		thisItme.index = index;
-		thisItme.title = item.title;
-		thisItme.created = item.created;
-		thisItme.updated = item.updated;
-		thisItme.compress = item.compress;
-		viewOf = "detail";
 		let passchannel = "";
 		let phraseTip = "";
 		showLoading($t("loadingData"));
@@ -292,7 +311,6 @@
 		} else {
 			if (passTip == "" || passphrase == null) {
 				alert($t("passphraseNotExist_pleaseSet"));
-				switchToList();
 				closeLoading();
 				return shakPassphraseButton();
 			}
@@ -301,6 +319,14 @@
 			thisItme.body = body;
 			passchannel = "user";
 		}
+		thisItme.index = index;
+		thisItme.title = item.title;
+		thisItme.created = item.created;
+		thisItme.updated = item.updated;
+		thisItme.compress = item.compress;
+		viewOf = "detail";
+		document.title = `${$t(detailMode)} - 1Pass`;
+
 		let uint8Array = new Uint8Array(thisItme.body);
 		showLoading(
 			$t("decryptingDataUsingTip", {
@@ -346,12 +372,14 @@
 		//console.log(thisItme.bodyText);
 	}
 	async function openCreate() {
-		if (passTip == "") return shakPassphraseButton();
+		if (passTip == "" || passphrase == null) {
+			return shakPassphraseButton();
+		}
 		if (headList.length > 9) return alert($t("limitedSpace_maximumOf10"));
-
 		thisItme.index = -2;
 		viewOf = "detail";
 		detailMode = "create";
+		document.title = `${$t(detailMode)} - 1Pass`;
 	}
 	async function saveDetail() {
 		if (
@@ -425,7 +453,8 @@
 				};
 				await ic_1pass.addItem(item, identityToken);
 				setTimeout(listHead, 1000);
-				switchToList();
+				//switchToList();
+				window.history.back();
 			} else {
 				let item = {
 					title: thisItme.title,
@@ -500,7 +529,9 @@
 	);
 
 	let passTipPrefix1 = $derived(passTip == "" ? "" : passTip.slice(0, 3));
-	let passTipHide1 = $derived(passTip == "" ? "-" : passTip.charAt(3));
+	let passTipHide1 = $derived(
+		passTip == "" ? "-" : passTip.substring(3, passTip.length - 3),
+	);
 	let passTipSuffix1 = $derived(passTip == "" ? "" : passTip.slice(-3));
 
 	async function setPassphrase() {
@@ -511,6 +542,7 @@
 		if (inputPassphrase != re_inputPassphrase)
 			return alert($t("twoPassphrasesEnteredNotMatch"));
 		let passTip_this = passTipPrefix + passTipHide + passTipSuffix;
+		console.log("passTip_this");
 		try {
 			showLoading($t("writingContract"));
 			let bool = await ic_1pass.setPassTip(passTip_this, identityToken);
@@ -742,7 +774,7 @@
 		</div>
 	</Popup>
 	{#if viewOf == "list"}
-		<section>
+		<section class="pt-12">
 			<Popup
 				bind:visible={firstPopup}
 				size={0}
@@ -784,7 +816,7 @@
 					>
 				</div>
 			</Popup>
-			<NavBar title="">
+			<NavBar title="" injClass="fixed top-0">
 				{#snippet leftChild()}
 					<div
 						class="h-full w-20 flex flex-row items-center bg-white leading-8 dark:bg-black/50"
@@ -839,7 +871,9 @@
 						customSize
 						customWidth={24}
 						customHeight={24}
-						onclick={openCreate}
+						onclick={() => {
+							location.hash = "#create";
+						}}
 					>
 						<img src="./add-item.svg" alt="add item" />
 					</Button>
@@ -853,14 +887,17 @@
 				<div class="h-4"></div>
 				<Skeleton type="p" />
 			{:else if loadingState == 2}
-				{#each headList as [index, item]}
+				{#each headList as [index, item], i}
 					<Cell
 						title={item.title}
 						subTitle="{$t('timestamp') +
 							util.formatDate(item.created)} - {util.formatDate(
 							item.updated,
 						)}"
-						onclick={() => openDetail(index, item)}
+						onclick={//() => openDetail(index, item)
+						() => {
+							location.hash = `#openDetail.${i}`;
+						}}
 					/>
 				{/each}
 				<Cell
@@ -869,13 +906,14 @@
 						util.formatDate(demoData.created)} - {util.formatDate(
 						demoData.updated,
 					)}"
-					onclick={() => openDetail(-1, demoData)}
+					onclick={//() => openDetail(-1, demoData)
+					() => (location.hash = "#openDetail.-1")}
 				/>
 			{/if}
 		</section>
 	{:else}
 		<!-- detail -->
-		<section class="flex flex-col h-screen">
+		<section class="flex flex-col h-screen pt-12">
 			<Popup
 				bind:visible={viewSourceData}
 				size={80}
@@ -897,7 +935,7 @@
 					>
 				</div>
 			</Popup>
-			<NavBar title={$t(detailMode)} onclickLeft={switchToList}>
+			<NavBar left={null} title="" injClass="fixed top-0">
 				{#snippet rightChild()}
 					<Button
 						disabled={detailMode == "create"}
@@ -946,6 +984,7 @@
 							} else {
 								detailMode = "view";
 							}
+							document.title = `${$t(detailMode)} - 1Pass`;
 						}}
 					>
 						{#if detailMode == "view"}
@@ -963,47 +1002,45 @@
 				disabled={detailMode == "view"}
 			/>
 			{#if detailMode == "view"}
-				{#if thisItme.bodyText.length > 0}
-					<div class="flex-1">
-						{#each thisItme.bodyText.split("\n") as line, index}
+				<div class="flex-1 pb-4">
+					{#each thisItme.bodyText.split("\n") as line, index}
+						<div
+							class="flex justify-between items-center border-b border-dashed mx-1"
+						>
 							<div
-								class="flex justify-between items-center border-b border-dashed mx-1"
+								id="line_{index}"
+								class="min-h-4 flex-grow"
+								style="word-break: break-word"
 							>
-								<div
-									id="line_{index}"
-									class="min-h-4 flex-grow"
-									style="word-break: break-word"
-								>
-									{line}
-								</div>
-								<div>
-									{#if line.length > 0}
-										<Button
-											fill="textTheme"
-											customSize
-											customWidth={24}
-											customHeight={24}
-											heightIn="0"
-											onclick={() =>
-												copyText(`#line_${index}`)}
-										>
-											<img src="./copy.svg" alt="copy" />
-										</Button>
-									{/if}
-								</div>
+								{line}
 							</div>
-						{/each}
-					</div>
-				{/if}
+							<div>
+								{#if line.length > 0}
+									<Button
+										fill="textTheme"
+										customSize
+										customWidth={24}
+										customHeight={24}
+										heightIn="0"
+										onclick={() =>
+											copyText(`#line_${index}`)}
+									>
+										<img src="./copy.svg" alt="copy" />
+									</Button>
+								{/if}
+							</div>
+						</div>
+					{/each}
+				</div>
 			{:else}
 				<textarea
 					placeholder={$t("content")}
 					bind:value={thisItme.bodyText}
-					class="flex-1 p-1 m-2 bg-black/5 dark:bg-white/5"
+					class="p-1 m-2 bg-black/5 dark:bg-white/5 flex-1 mb-4"
 				></textarea>
 			{/if}
 			<div
-				class="flex justify-around flex-wrap text-white bg-slate-950 text-xs"
+				class="flex justify-around flex-wrap text-white bg-slate-950 text-xs fixed bottom-0 right-0 left-0"
 			>
 				<span class="flex items-center"
 					>Encrypt: <Badge
@@ -1061,7 +1098,7 @@
 						></span
 					>
 				{/if}
-				{#if compressedSize > 0}
+				<!-- {#if compressedSize > 0}
 					<span
 						>Compressed: <span class="text-green-500"
 							>{NumberFormat.format(
@@ -1069,7 +1106,7 @@
 							)}kB</span
 						></span
 					>
-				{/if}
+				{/if} -->
 			</div>
 		</section>
 	{/if}
