@@ -47,4 +47,8 @@ The ease of access as well as usage is one of the primary reasons why the applic
 2. The design philosophy as well as the cybersecurity aspect of this application is inspired by "Delta 3-No Verification" and the password management product "1password". (Learn more about 1password here: [https://www.1password.com](https://www.1password.com)
 3. To ensure the transparency and credibility of this application, we have kept the source code pertaining to this project 100%-open source. Code repository: [https://github.com/delta-kim/1pass](https://github.com/delta-kim/1pass)
 
+
+
+<div style="text-align:right;">
 Haida and Sushobhan in July 2025
+</div>
