@@ -26,6 +26,8 @@
 	import { CTR } from "aes-js";
 	//import hash from "js-crypto-hash";
 	import { createHash } from "sha256-uint8array";
+	import { IDL } from "@dfinity/candid";
+	import { idlFactory } from "./declarations/delta/delta.did.js";
 
 	(function () {
 		if (window.Initialized == undefined) {
@@ -59,7 +61,7 @@
 	let textDecoder = new TextDecoder();
 	let textEncoder = new TextEncoder();
 	let NumberFormat = Intl.NumberFormat("en-US", { maximumFractionDigits: 3 });
-	let firstPopup = $state(true);
+	let firstPopup = $state(false);
 	let userNum = $state("…");
 	let itemNum = $state("…");
 	let identityToken = null;
@@ -132,6 +134,8 @@
 	let inputPassphrase = $state("");
 	let re_inputPassphrase = $state("");
 
+	let QRok = false;
+
 	//let demobody =	"Bitcoin:\n1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa\n5Kb8kLf9zgWQnogidDA76MzPL6TsZZY36hWXMssSzNydYXYB9KF\n\nEthereum:\n0x742d35Cc6634C0532925a3b844Bc454e4438f44e\n0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d\n\nICP:\nxlmdg-vqaaa-aaaam-qaava-cai\npuzzle winner forest amazing ocean ribbon spatial gesture april mouse theory sweet";
 
 	function shakPassphraseButton() {
@@ -146,8 +150,13 @@
 	}
 	onMount(async () => {
 		console.log("onMount");
-		//console.log("aes", aes);
-
+		//window.ic_1pass = ic_1pass;
+		const service = idlFactory({ IDL });
+		window.service = service;
+		console.log(window.service);
+		if (window.delta && typeof window.delta.showQRcode == "function") {
+			QRok = true;
+		}
 		if (identityToken != null) {
 			getPassTip();
 		}
@@ -309,8 +318,12 @@
 			thisItme.body = item.body;
 			passchannel = "demo";
 		} else {
-			if (passTip == "" || passphrase == null) {
-				alert($t("passphraseNotExist_pleaseSet"));
+			if (passphrase == null) {
+				if (passTip == "") {
+					alert($t("passphraseNotExist_pleaseSet"));
+				} else {
+					alert($t("pleaseEnterYourPassphraseToAccessYourData"));
+				}
 				closeLoading();
 				return shakPassphraseButton();
 			}
@@ -404,8 +417,14 @@
 			if (thisItme.index == -1) {
 				passchannel = "demo";
 			} else {
-				if (passphrase == null)
-					return alert($t("passphraseNotExist_pleaseSet"));
+				if (passphrase == null) {
+					if (passTip == "") {
+						alert($t("passphraseNotExist_pleaseSet"));
+					} else {
+						alert($t("pleaseEnterYourPassphraseToAccessYourData"));
+					}
+					return;
+				}
 				passchannel = "user";
 			}
 			let bodyBytes = textEncoder.encode(thisItme.bodyText);
@@ -811,6 +830,22 @@
 						})}
 					</p>
 					<p class="pb-3 text-green-500">{$t("beingProtected")}</p>
+					<p>
+						<img
+							class="inline-block w-4 mr-1"
+							src="./youtube.png"
+							alt="youtube"
+						/><a
+							class="underline"
+							href="javascript:void(0);"
+							onclick={(event) => {
+								event.preventDefault();
+								window.delta.openUrl(
+									"https://youtu.be/Ymwnu1lV6XQ",
+								);
+							}}>Video Introduction</a>
+					</p>
+
 					<Button size="auto" onclick={startUsing}
 						><div class="px-2">{$t("getStarted")}</div></Button
 					>
@@ -837,7 +872,7 @@
 						<button
 							onclick={() => {
 								window.delta.openUrl(
-									"https://github.com/delta-kim/1pass/blob/main/archive/1Pass%20White%20Paper%20en-US.pdf",
+									"https://github.com/delta-kim/1pass/blob/main/archive/1Pass%20White%20Paper%20en-US.md",
 								);
 							}}
 						>
@@ -955,7 +990,7 @@
 							title="Cipher"
 						/>
 					</Button>
-					{#if thisOriginalBodyText != thisItme.bodyText || thisOriginalTitle != thisItme.title}
+					<!-- {#if thisOriginalBodyText != thisItme.bodyText || thisOriginalTitle != thisItme.title}
 						<Button
 							injClass="mr-2"
 							fill="textTheme"
@@ -970,7 +1005,7 @@
 								title="Submit"
 							/>
 						</Button>
-					{/if}
+					{/if} -->
 					<Button
 						disabled={detailMode == "create"}
 						injClass="mr-2"
@@ -1004,6 +1039,7 @@
 			{#if detailMode == "view"}
 				<div class="flex-1 pb-4">
 					{#each thisItme.bodyText.split("\n") as line, index}
+						{@const length = textEncoder.encode(line).length}
 						<div
 							class="flex justify-between items-center border-b border-dashed mx-1"
 						>
@@ -1014,21 +1050,39 @@
 							>
 								{line}
 							</div>
-							<div>
-								{#if line.length > 0}
-									<Button
-										fill="textTheme"
-										customSize
-										customWidth={24}
-										customHeight={24}
-										heightIn="0"
+							{#if length > 0}
+								<div
+									class={length > 40
+										? "flex shrink-0 flex-wrap w-6"
+										: "flex w-12"}
+								>
+									<!-- svelte-ignore a11y_click_events_have_key_events -->
+									<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+									<img
+										src="./copy.svg"
+										class="w-6"
+										alt="copy"
 										onclick={() =>
 											copyText(`#line_${index}`)}
-									>
-										<img src="./copy.svg" alt="copy" />
-									</Button>
-								{/if}
-							</div>
+									/>
+									{#if length < 512 && QRok}
+										<!-- svelte-ignore a11y_click_events_have_key_events -->
+										<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+										<img
+											src="./qr_code.svg"
+											class="w-6"
+											alt="qr_code"
+											onclick={() => {
+												window.delta.showQRcode(
+													document.querySelector(
+														`#line_${index}`,
+													).textContent,
+												);
+											}}
+										/>
+									{/if}
+								</div>
+							{/if}
 						</div>
 					{/each}
 				</div>
@@ -1036,8 +1090,36 @@
 				<textarea
 					placeholder={$t("content")}
 					bind:value={thisItme.bodyText}
-					class="p-1 m-2 bg-black/5 dark:bg-white/5 flex-1 mb-4"
+					class="p-1 mx-2 bg-black/5 dark:bg-white/5 flex-1"
 				></textarea>
+				<div class="flex justify-evenly mb-6">
+					{#if QRok}
+						<button
+							onclick={async () => {
+								let text = await window.delta.scanQR();
+								if (text != "") {
+									thisItme.bodyText += "\n" + text;
+								}
+							}}
+						>
+							<img src="./scanQR.svg" alt="scanQR" />
+						</button>
+					{/if}
+					<button
+						onclick={saveDetail}
+						disabled={thisOriginalBodyText == thisItme.bodyText &&
+							thisOriginalTitle == thisItme.title}
+					>
+						<img
+							src="./submit.svg"
+							alt="submit"
+							style={thisOriginalBodyText == thisItme.bodyText &&
+							thisOriginalTitle == thisItme.title
+								? "filter: grayscale(100%)"
+								: ""}
+						/>
+					</button>
+				</div>
 			{/if}
 			<div
 				class="flex justify-around flex-wrap text-white bg-slate-950 text-xs fixed bottom-0 right-0 left-0"
